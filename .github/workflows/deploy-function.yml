@@ -9,33 +9,37 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
-      # Replace with your Function App name OR set as a repo secret/env you prefer
-      FUNCTION_APP_NAME: MKRFunctApp
+      FUNCTION_APP_NAME: ${{ secrets.FUNCTION_APP_NAME }}
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Setup .NET 8
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '8.0.x'
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
 
-    - name: Restore
-      run: dotnet restore
+      - name: Restore
+        run: dotnet restore ./functions-quickstart-dotnet-azd-sql.csproj
 
-    - name: Publish
-      run: dotnet publish ./functions-quickstart-dotnet-azd-sql.csproj -c Release -o ./publish
+      - name: Publish
+        run: dotnet publish ./functions-quickstart-dotnet-azd-sql.csproj -c Release -o ./publish
 
-    - name: Zip publish output
-      run: |
-        cd publish
-        zip -r ../functionapp.zip *
-        cd ..
+      - name: Ensure zip is available
+        run: sudo apt-get update && sudo apt-get install -y zip
 
-    - name: Deploy to Azure (zip deploy)
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: ${{ env.FUNCTION_APP_NAME }}
-        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-        package: ./functionapp.zip
+      - name: Zip publish output
+        run: |
+          cd publish
+          zip -r ../functionapp.zip *
+          cd ..
+
+      - name: Deploy to Azure (zip deploy)
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.FUNCTION_APP_NAME }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          package: ./functionapp.zip
