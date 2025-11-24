@@ -41,5 +41,6 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.FUNCTION_APP_NAME }}
+          slot-name: staging        # add only if you deploy to a slot
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           package: ./functionapp.zip
