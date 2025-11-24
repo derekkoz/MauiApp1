@@ -266,3 +266,11 @@ __pycache__/
 # Ignore sqlcmd binaries and archives
 sqlcmd*
 .azure
+# local/dev artifacts
+functionapp.zip
+*.zip
+
+# IDE/build
+.vs/
+bin/
+obj/
