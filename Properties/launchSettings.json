@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "functions_quickstart_dotnet_azd_sql": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7185",
+      "launchBrowser": false
+    }
+  }
+}
