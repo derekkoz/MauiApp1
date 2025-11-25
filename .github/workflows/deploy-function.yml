@@ -26,7 +26,7 @@ jobs:
         run: dotnet restore ./functions-quickstart-dotnet-azd-sql.csproj
 
       - name: Publish
-        run: dotnet publish ./functions-quickstart-dotnet-azd-sql.csproj -c Release -o ./publish
+        run: dotnet publish ./functions-quickstart-dotnet-azd-sql.csproj -c Release -o ./publish -r linux-x64 --self-contained false
 
       - name: Ensure zip is available
         run: sudo apt-get update && sudo apt-get install -y zip
@@ -37,10 +37,33 @@ jobs:
           zip -r ../functionapp.zip *
           cd ..
 
-      - name: Deploy to Azure (zip deploy)
-        uses: azure/webapps-deploy@v2
+      - name: Inspect zip contents (debug)
+        run: |
+          echo "Listing functionapp.zip contents:"
+          python -m zipfile -l ./functionapp.zip || (ls -la ./functionapp.zip && echo "zip listing failed")
+
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Azure login (Service Principal)
+        uses: azure/login@v2
         with:
-          app-name: ${{ env.FUNCTION_APP_NAME }}
-          # slot-name: staging   # remove or comment this line if you do not use a slot
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-          package: ./functionapp.zip
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+      - name: Ensure FUNCTIONS_WORKER_RUNTIME is correct (dotnet-isolated)
+        run: |
+          az functionapp config appsettings set \
+            --name "${{ env.FUNCTION_APP_NAME }}" \
+            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+            --settings FUNCTIONS_WORKER_RUNTIME=dotnet-isolated
+
+      - name: Zip deploy via az
+        run: |
+          az functionapp deployment source config-zip \
+            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ env.FUNCTION_APP_NAME }}" \
+            --src ./functionapp.zip
