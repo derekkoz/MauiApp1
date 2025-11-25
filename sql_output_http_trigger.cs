@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Sql;
@@ -18,7 +19,7 @@ public class SqlOutputBindingHttpTriggerCSharp
 
     // Visit https://aka.ms/sqlbindingsoutput to learn how to use this output binding
     [Function("httptrigger-sql-output")]
-    public async Task<OutputType> Run(
+    public Task<OutputType> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestData req,
         [FromBody] ToDoItem toDoItem
     )
@@ -27,7 +28,7 @@ public class SqlOutputBindingHttpTriggerCSharp
             "C# HTTP trigger with SQL Output Binding function processed a request."
         );
 
-        return new OutputType
+        var output = new OutputType
         {
             ToDoItem = toDoItem,
             HttpResponse = new CreatedResult
@@ -36,6 +37,8 @@ public class SqlOutputBindingHttpTriggerCSharp
                 toDoItem
             )
         };
+
+        return Task.FromResult(output);
     }
 }
 
