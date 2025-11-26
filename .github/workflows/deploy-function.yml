@@ -23,7 +23,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore
-        run: dotnenv restore ./functions-quickstart-dotnet-azd-sql.csproj
+        run: dotnet restore ./functions-quickstart-dotnet-azd-sql.csproj
 
       - name: Publish
         run: dotnet publish ./functions-quickstart-dotnet-azd-sql.csproj -c Release -o ./publish -r linux-x64 --self-contained false
@@ -36,31 +36,3 @@ jobs:
           cd publish
           zip -r ../functionapp.zip *
           cd ..
-
-      - name: Inspect zip contents (debug)
-        run: |
-          echo "Listing functionapp.zip contents:"
-          python -m zipfile -l ./functionapp.zip || (ls -la ./functionapp.zip && echo "zip listing failed")
-
-      - name: Install Azure CLI
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-      - name: Azure login (Service Principal)
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Ensure FUNCTIONS_WORKER_RUNTIME is correct (dotnet-isolated)
-        run: |
-          az functionapp config appsettings set \
-            --name "${{ env.FUNCTION_APP_NAME }}" \
-            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
-            --settings FUNCTIONS_WORKER_RUNTIME=dotnet-isolated
-
-      - name: Zip deploy via az
-        run: |
-          az functionapp deployment source config-zip \
-            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
-            --name "${{ env.FUNCTION_APP_NAME }}" \
-            --src ./functionapp.zip
