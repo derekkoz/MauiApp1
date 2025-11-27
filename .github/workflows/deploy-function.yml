@@ -1,4 +1,4 @@
-name: Deploy Azure Function (zip)
+name: Deploy Azure Function (func publish)
 
 on:
   push:
@@ -25,62 +25,21 @@ jobs:
       - name: Restore
         run: dotnet restore ./functions-quickstart-dotnet-azd-sql.csproj
 
-      - name: Publish
-        run: dotnet publish ./functions-quickstart-dotnet-azd-sql.csproj -c Release -o ./publish -r linux-x64 --self-contained false
-
-      - name: Ensure zip is available
-        run: sudo apt-get update && sudo apt-get install -y zip
-
-      - name: Debug workspace before zipping
-        run: |
-          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
-          echo "PWD=$(pwd)"
-          ls -la || true
-          if [ -d publish ]; then ls -la publish || true; else echo "publish missing"; fi
-
-      - name: Zip publish output
-        run: |
-          if [ -d publish ] && [ "$(ls -A publish 2>/dev/null)" ]; then
-            zip -rv functionapp.zip publish/*
-          else
-            echo "ERROR: publish directory missing or empty" >&2
-            ls -la publish || true
-            exit 1
-          fi
-
-      - name: Verify package
-        run: |
-          echo "Working directory: $(pwd)"
-          ls -la functionapp.zip || true
-          file functionapp.zip || true
-
-      - name: Upload zip artifact (for inspection)
-        uses: actions/upload-artifact@v4
+      - name: Setup Node.js (required for Core Tools)
+        uses: actions/setup-node@v4
         with:
-          name: functionapp-zip
-          path: functionapp.zip
+          node-version: '18'
+
+      - name: Install Azure Functions Core Tools
+        run: npm install -g azure-functions-core-tools@4 --unsafe-perm true
 
       - name: Azure login (Service Principal)
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Show file & deploy (debug)
-        working-directory: ${{ github.workspace }}
+      - name: Publish to Azure Functions (Core Tools)
         run: |
-          echo "PWD: $(pwd)"
-          ls -la functionapp.zip || true
-          # use relative path (must exist in working dir)
-          set -o pipefail
-          az functionapp deployment source config-zip \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --name ${{ secrets.FUNCTION_APP_NAME }} \
-            --src ./functionapp.zip \
-            --debug 2>&1 | tee deployment-debug.log || true
-          echo "---- deployment-debug.log ----"
-          sed -n '1,400p' deployment-debug.log
-
-      - name: Show Function URL
-        run: |
-          echo "Function default host:"
-          az functionapp show --name ${{ secrets.FUNCTION_APP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query defaultHostName -o tsv
+          # func will build and create the correct package for dotnet-isolated apps,
+          # including the .azurefunctions folder required by the Functions host.
+          func azure functionapp publish ${{ secrets.FUNCTION_APP_NAME }} --nozip --force
