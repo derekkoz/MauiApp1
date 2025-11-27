@@ -274,3 +274,4 @@ functionapp.zip
 .vs/
 bin/
 obj/
+local.settings.json
