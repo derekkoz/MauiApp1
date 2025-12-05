@@ -1,0 +1,23 @@
+﻿{
+    "scriptFile":  "functions-quickstart-dotnet-azd-sql.dll",
+    "entryPoint":  "AzureSQL.ToDo.SqlOutputBindingHttpTriggerCSharp.Run",
+    "bindings":  [
+                     {
+                         "name":  "req",
+                         "direction":  "In",
+                         "type":  "httpTrigger",
+                         "authLevel":  "Function",
+                         "methods":  [
+                                         "post"
+                                     ],
+                         "properties":  {
+
+                                        }
+                     },
+                     {
+                         "name":  "$return",
+                         "type":  "http",
+                         "direction":  "Out"
+                     }
+                 ]
+}

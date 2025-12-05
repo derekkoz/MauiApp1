@@ -1,0 +1,3 @@
+<step title="Startup Request" date="2025-12-04T18:49:43.036" instance="4d5376" url="/api/commandstream/ping?shell=CMD&amp;_=1764872936912" method="GET" type="request" pid="3232,2,6" SCM_LOGSTREAM_TIMEOUT="3600" ScmType="None" >
+  <step title="Cleanup Xml Logs" date="2025-12-04T18:49:43.067" /><!-- duration: 125ms -->
+</step><!-- duration: 187ms -->

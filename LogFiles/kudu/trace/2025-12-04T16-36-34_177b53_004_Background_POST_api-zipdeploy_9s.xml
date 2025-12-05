@@ -1,0 +1,62 @@
+<step title="BackgroundTrace" date="2025-12-04T16:36:34.022" instance="177b53" url="/api/zipdeploy" method="POST" >
+  <step title="Updating shutdown sentinel last write time" date="2025-12-04T16:36:34.071" SemaphoreCount="7" /><!-- duration: 30ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2025-12-04T16:36:34.132" /><!-- duration: 16ms -->
+  <step title="Creating temporary deployment" date="2025-12-04T16:36:34.178" /><!-- duration: 203ms -->
+  <step title="Performing fetch based deployment" date="2025-12-04T16:36:34.413" >
+    <step title="Fetching changes." date="2025-12-04T16:36:34.694" /><!-- duration: 31ms -->
+    <step title="Starting LocalZipHandler" date="2025-12-04T16:36:34.757" /><!-- duration: 31ms -->
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\si2szjos.zip (11.66 MB) to C:\local\Temp\zipdeploy\extracted" date="2025-12-04T16:36:34.897" /><!-- duration: 31ms -->
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\si2szjos.zip (11.66 MB) to C:\local\Temp\zipdeploy\extracted" date="2025-12-04T16:36:34.944" >
+      <step title="Extracting 155 entries to C:\local\Temp\zipdeploy\extracted directory" date="2025-12-04T16:36:35.100" >
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\.azurefunctions\Azure.Core.dll ..." date="2025-12-04T16:36:35.132" /><!-- duration: 47ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\.azurefunctions\Azure.Identity.dll ..." date="2025-12-04T16:36:35.210" /><!-- duration: 31ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\.azurefunctions\function.deps.json ..." date="2025-12-04T16:36:35.272" /><!-- duration: 16ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\.azurefunctions\Microsoft.Azure.Functions.Worker.Extensions.dll ..." date="2025-12-04T16:36:35.319" /><!-- duration: 16ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\.azurefunctions\Microsoft.Azure.Functions.Worker.Extensions.pdb ..." date="2025-12-04T16:36:35.382" /><!-- duration: 31ms -->
+        <step title="Omitting extracting file traces ..." date="2025-12-04T16:36:35.428" /><!-- duration: 47ms -->
+      </step><!-- duration: 797ms -->
+    </step><!-- duration: 984ms -->
+    <step title="Before sending BuildRequestReceived status to /api/updatedeploystatus" date="2025-12-04T16:36:35.960" /><!-- duration: 16ms -->
+    <step title="DeploymentManager.Deploy(id:e194415dc0ef493499b57b6fe1937782)" date="2025-12-04T16:36:36.007" >
+      <step title="Collecting changeset information" date="2025-12-04T16:36:36.069" /><!-- duration: 218ms -->
+      <step title="Updating submodules" date="2025-12-04T16:36:36.319" >
+        <step title="Updating submodules." date="2025-12-04T16:36:36.553" /><!-- duration: 31ms -->
+      </step><!-- duration: 281ms -->
+      <step title="Preparing deployment for commit id &apos;e194415dc0&apos;." date="2025-12-04T16:36:36.835" /><!-- duration: 31ms -->
+      <step title="Determining deployment builder" date="2025-12-04T16:36:37.085" >
+        <step title="Builder is BasicBuilder" date="2025-12-04T16:36:37.116" /><!-- duration: 31ms -->
+      </step><!-- duration: 109ms -->
+      <step title="Copying SSH keys" date="2025-12-04T16:36:37.303" /><!-- duration: 31ms -->
+      <step title="Building" date="2025-12-04T16:36:37.366" >
+        <step title="Generating deployment script." date="2025-12-04T16:36:37.569" /><!-- duration: 16ms -->
+        <step title="Generating deployment script" date="2025-12-04T16:36:37.632" >
+          <step title="Using cached version of the deployment script for command: -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --basic --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;" date="2025-12-04T16:36:37.710" /><!-- duration: 16ms -->
+          <step title="Using cached version of deployment script (command: &apos;azure -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --basic --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;&apos;)." date="2025-12-04T16:36:37.772" /><!-- duration: 31ms -->
+        </step><!-- duration: 203ms -->
+        <step title="Running deployment command..." date="2025-12-04T16:36:38.054" /><!-- duration: 31ms -->
+        <step title="Command: &quot;C:\home\site\deployments\tools\deploy.cmd&quot;" date="2025-12-04T16:36:38.132" /><!-- duration: 16ms -->
+        <step title="Executing external process" date="2025-12-04T16:36:38.178" type="process" path="starter.cmd" arguments="&quot;C:\home\site\deployments\tools\deploy.cmd&quot;" >
+          <step title="Handling Basic Web Site deployment." date="2025-12-04T16:36:39.195" /><!-- duration: 31ms -->
+          <step title="Creating app_offline.htm" date="2025-12-04T16:36:39.851" /><!-- duration: 16ms -->
+          <step title="KuduSync.NET from: &apos;C:\local\Temp\zipdeploy\extracted&apos; to: &apos;C:\home\site\wwwroot&apos;" date="2025-12-04T16:36:39.929" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;extensions.json&apos;" date="2025-12-04T16:36:39.991" /><!-- duration: 31ms -->
+          <step title="Copying file: &apos;worker.config.json&apos;" date="2025-12-04T16:36:40.085" /><!-- duration: 31ms -->
+          <step title="Deleting app_offline.htm" date="2025-12-04T16:36:40.179" /><!-- duration: 16ms -->
+          <step title="Finished successfully." date="2025-12-04T16:36:40.241" /><!-- duration: 31ms -->
+        </step><!-- duration: 2126ms -->
+        <step title="Running post deployment command(s)..." date="2025-12-04T16:36:40.523" /><!-- duration: 31ms -->
+        <step title="Triggering recycle (preview mode disabled)." date="2025-12-04T16:36:40.788" /><!-- duration: 16ms -->
+        <step title="Ignoring FS watcher based recycle request as this is a classic Windows app." date="2025-12-04T16:36:40.835" /><!-- duration: 16ms -->
+        <step title="Deployment successful. DEPLOYMENTINFO: deploymentPath = Functions App ZipDeploy. Extract zip. , deployer = az_cli_functions, os = windows, sku = Dynamic, language = dotnet-isolated, siteName = MKRFunctApp-dotnet8, slotName = Production, siteHostName = mkrfunctapp-dotnet8.azurewebsites.net, deploymentStatus = Success" date="2025-12-04T16:36:41.085" /><!-- duration: 31ms -->
+        <step title="Purge deployment items" date="2025-12-04T16:36:41.491" >
+          <step title="Remove da35eb683, Success, received at 12/2/2025 5:41:49 PM" date="2025-12-04T16:36:42.038" /><!-- duration: 47ms -->
+        </step><!-- duration: 625ms -->
+      </step><!-- duration: 4860ms -->
+    </step><!-- duration: 6251ms -->
+    <step title="Cleaning up temp files" date="2025-12-04T16:36:42.273" /><!-- duration: 31ms -->
+    <step title="Begin HttpPost https://mkrfunctapp-dotnet8.scm.azurewebsites.net/operations/settriggers, x-ms-request-id: 5a91e3cf-d12f-11f0-8e7f-a20a521449da" date="2025-12-04T16:36:42.413" /><!-- duration: 16ms -->
+    <step title="End HttpPost, status: OK" date="2025-12-04T16:36:42.899" /><!-- duration: 31ms -->
+    <step title="Scheduling background sync triggers after delay" date="2025-12-04T16:36:42.961" /><!-- duration: 16ms -->
+  </step><!-- duration: 8674ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2025-12-04T16:36:43.118" /><!-- duration: 16ms -->
+</step><!-- duration: 9158ms -->

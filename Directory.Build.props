@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Temporarily disable SDK auto-generation to avoid duplicate assembly attributes -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+</Project>

@@ -1,22 +1,28 @@
 using System.Net;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.Logging;
 
-namespace AzureSQL.ToDo;
-
-public static class HealthCheckFunction
+namespace AzureSQL.ToDo
 {
-    [Function("health")]
-    public static HttpResponseData Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "health")] HttpRequestData req,
-        FunctionContext context)
+    public class HealthCheckFunction
     {
-        var logger = context.GetLogger("health");
-        logger.LogInformation("Health check invoked.");
-        var res = req.CreateResponse(HttpStatusCode.OK);
-        res.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-        res.WriteString("OK");
-        return res;
+        [Function("health")]
+        public async Task<HttpResponseData> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "health")] HttpRequestData req,
+            FunctionContext context)
+        {
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            var payload = "Healthy";
+            var bytes = Encoding.UTF8.GetBytes(payload);
+
+            // Async write to avoid synchronous I/O (Kestrel disallows sync writes)
+            await response.Body.WriteAsync(bytes.AsMemory(0, bytes.Length), CancellationToken.None);
+
+            response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+            return response;
+        }
     }
 }

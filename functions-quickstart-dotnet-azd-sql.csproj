@@ -9,11 +9,17 @@
     <UserSecretsId>fedd831c-7fe2-4a3a-8275-5d1c701ed879</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- stop SDK from auto-generating assembly attributes -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Functions worker SDK as a NuGet package so restore supplies the MSBuild targets -->
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.1" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.0.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="2.0.0" />
@@ -33,5 +39,12 @@
     <Content Include="host.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <!-- Exclude tests folder from compilation so test sources are not compiled into the function assembly -->
+  <ItemGroup>
+    <Compile Remove="tests\**\*.cs" />
+    <None Remove="tests\**\*" />
+    <Content Remove="tests\**\*" />
   </ItemGroup>
 </Project>

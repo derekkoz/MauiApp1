@@ -38,8 +38,79 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Publish to Azure Functions (Core Tools)
+      - name: Verify Azure login & publish (Core Tools)
+        working-directory: ${{ github.workspace }}
         run: |
-          # func will build and create the correct package for dotnet-isolated apps,
-          # including the .azurefunctions folder required by the Functions host.
-          func azure functionapp publish ${{ secrets.FUNCTION_APP_NAME }} --nozip --force
+          echo "=== az account (must show subscription) ==="
+          az account show || az account list
+          echo "=== remove any repo-root local.settings.json to avoid detection ==="
+          rm -f "${GITHUB_WORKSPACE}/local.settings.json" || true
+          echo "=== locate functions project ==="
+          proj=$(find . -maxdepth 3 -type f -name 'functions-quickstart-dotnet-azd-sql.csproj' | head -n 1)
+          if [ -z "$proj" ]; then
+            echo "ERROR: functions .csproj not found" >&2
+            ls -la
+            exit 1
+          fi
+          projdir=$(dirname "$proj")
+          echo "Project found: $proj"
+          echo "Project dir: $projdir"
+          cd "$projdir"
+          echo "=== write local.settings.json in project dir ==="
+          cat > local.settings.json <<'JSON'
+{"IsEncrypted":false,"Values":{"FUNCTIONS_WORKER_RUNTIME":"dotnet-isolated"}}
+JSON
+          echo "=== func version ==="
+          func --version || true
+          echo "=== build functions project ==="
+          dotnet build "$(basename "$proj")" -c Release
+          echo "=== publish (explicit runtime dotnet-isolated) ==="
+          func azure functionapp publish ${{ secrets.FUNCTION_APP_NAME }} --dotnet-isolated --force
+      - name: Generate .azurefunctions and zip
+        working-directory: ${{ github.workspace }}
+        run: |
+          echo "Generating .azurefunctions from publish/functions.metadata and producing functionapp-azure.zip"
+          PublishDir="./publish"
+          OutputZip="./functionapp-azure.zip"
+
+          if [ ! -d "$PublishDir" ]; then
+            echo "Publish folder not found: $PublishDir. Run 'dotnet publish' first."
+            exit 1
+          fi
+
+          metaPath="$PublishDir/functions.metadata"
+          if [ ! -f "$metaPath" ]; then
+            echo "functions.metadata not found at $metaPath"
+            exit 1
+          fi
+
+          # Read metadata
+          metaJson=$(<"$metaPath")
+          functions=$(echo "$metaJson" | jq -c '.[]')
+
+          # Ensure .azurefunctions root
+          azureRoot="$PublishDir/.azurefunctions"
+          rm -rf "$azureRoot" || true
+          mkdir -p "$azureRoot"
+
+          # For each function, create function.json with scriptFile, entryPoint and bindings from metadata
+          echo "$functions" | while IFS= read -r f; do
+            fnName=$(echo "$f" | jq -r '.name')
+            fnDir="$azureRoot/$fnName"
+            mkdir -p "$fnDir"
+
+            out=$(echo "$f" | jq '{scriptFile, entryPoint, bindings}')
+            echo "$out" | jq . > "$fnDir/function.json"
+            echo "Wrote .azurefunctions/$fnName/function.json"
+          done
+
+          # Recreate zip including .azurefunctions
+          cwd=$(pwd)
+          cd "$PublishDir" || exit
+          rm -f "$OutputZip" || true
+          zip -r "$OutputZip" .azurefunctions -x "*.git*" -x "*node_modules*" -x "*.zip"
+          cd "$cwd" || exit
+
+          echo "Created package: $OutputZip"
+          echo "Deploy with az or your existing script:"
+          echo "az functionapp deployment source config-zip --resource-group <rg> --name <app> --src '$OutputZip'"

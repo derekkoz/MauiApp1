@@ -1,0 +1,24 @@
+﻿{
+    "scriptFile":  "functions-quickstart-dotnet-azd-sql.dll",
+    "entryPoint":  "AzureSQL.ToDo.HealthCheckFunction.Run",
+    "bindings":  [
+                     {
+                         "name":  "req",
+                         "direction":  "In",
+                         "type":  "httpTrigger",
+                         "authLevel":  "Anonymous",
+                         "methods":  [
+                                         "get"
+                                     ],
+                         "route":  "health",
+                         "properties":  {
+
+                                        }
+                     },
+                     {
+                         "name":  "$return",
+                         "type":  "http",
+                         "direction":  "Out"
+                     }
+                 ]
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "name": "health",
+    "scriptFile": "functions-quickstart-dotnet-azd-sql.dll",
+    "entryPoint": "AzureSQL.ToDo.HealthCheckFunction.Run",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get"
+        ],
+        "route": "health",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "httptrigger-sql-output",
+    "scriptFile": "functions-quickstart-dotnet-azd-sql.dll",
+    "entryPoint": "AzureSQL.ToDo.SqlOutputBindingHttpTriggerCSharp.Run",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "sql_trigger_todo",
+    "scriptFile": "functions-quickstart-dotnet-azd-sql.dll",
+    "entryPoint": "AzureSQL.ToDo.ToDoTrigger.Run",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "changes",
+        "direction": "In",
+        "type": "sqlTrigger",
+        "tableName": "[dbo].[ToDo]",
+        "connectionStringSetting": "AZURE_SQL_CONNECTION_STRING_KEY",
+        "properties": {}
+      }
+    ]
+  }
+]

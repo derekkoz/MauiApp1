@@ -1,1 +1,2 @@
 ﻿* text=auto
+tables filter=lfs diff=lfs merge=lfs -text

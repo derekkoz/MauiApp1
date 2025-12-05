@@ -1,0 +1,3 @@
+<step title="Startup Request" date="2025-12-03T14:59:53.186" instance="dd9dc9" url="/api/commandstream/ping?shell=powershell&amp;_=1764769124702" method="GET" type="request" pid="3176,2,7" SCM_LOGSTREAM_TIMEOUT="3600" ScmType="None" >
+  <step title="Cleanup Xml Logs" date="2025-12-03T14:59:53.218" /><!-- duration: 31ms -->
+</step><!-- duration: 94ms -->

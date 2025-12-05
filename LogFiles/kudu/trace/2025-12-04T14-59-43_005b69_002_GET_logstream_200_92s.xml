@@ -1,0 +1,9 @@
+<step title="Incoming Request" date="2025-12-04T14:59:43.743" instance="005b69" url="/logstream" method="GET" type="request" pid="4608,2,12" Accept-Encoding="identity" Authorization="Bea..." Host="mkrfunctapp-dotnet8.scm.azurewebsites.net" User-Agent="AZURECLI/2.80.0 (MSI)" x-ms-client-request-id="da513ff2-d121-11f0-853e-a20a521449da" X-ARR-LOG-ID="da513ff2-d121-11f0-853e-a20a521449da" CLIENT-IP="71.199.91.232:49707" X-SITE-DEPLOYMENT-ID="MKRFunctApp-dotnet8" WAS-DEFAULT-HOSTNAME="mkrfunctapp-dotnet8.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/logstream" >
+  <step title="Cleanup Xml Logs" date="2025-12-04T14:59:43.774" /><!-- duration: 47ms -->
+  <step title="LogStreamHandler.BeginProcessRequest" date="2025-12-04T14:59:43.853" >
+    <step title="LockFile &apos;C:\home\site\locks\hooks.lock&apos; acquired" date="2025-12-04T14:59:44.259" /><!-- duration: 31ms -->
+    <step title="LockFile &apos;C:\home\site\locks\hooks.lock&apos; released" date="2025-12-04T14:59:44.446" /><!-- duration: 31ms -->
+  </step><!-- duration: 688ms -->
+  <step title="LogStreamHandler.EndProcessRequest" date="2025-12-04T15:01:15.465" /><!-- duration: 31ms -->
+  <step title="Outgoing response" date="2025-12-04T15:01:15.543" type="response" statusCode="200" statusText="OK" Server="Microsoft-IIS/10.0" Cache-Control="private" X-AspNet-Version="4.0.30319" Content-Type="text/plain; charset=utf-8" /><!-- duration: 31ms -->
+</step><!-- duration: 91878ms -->

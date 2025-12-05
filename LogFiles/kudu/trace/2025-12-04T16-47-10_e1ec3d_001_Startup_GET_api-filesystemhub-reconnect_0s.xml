@@ -1,0 +1,3 @@
+<step title="Startup Request" date="2025-12-04T16:47:10.855" instance="e1ec3d" url="/api/filesystemhub/reconnect?transport=webSockets&amp;messageId=d-F456AA0A-A%2C0%7CB%2C4%7CC%2C0%7CD%2C0&amp;clientProtocol=1.4&amp;connectionToken=7YbcK9DAgkjTMvyMIsEKe0iagLDFhlnhzEPHNYrf94oSCZdbeYNlfU8EG5C9QymPYDBCGhRU7NKmfJ4%2FDu9FKv9YlzHHEWo29D6vhu7aHKceixkIW57LM3wWBSFq3YYL&amp;connectionData=%5B%7B%22name%22%3A%22filesystemhub%22%7D%5D&amp;tid=3" method="GET" type="request" pid="3540,2,7" ScmType="None" SCM_LOGSTREAM_TIMEOUT="3600" >
+  <step title="Cleanup Xml Logs" date="2025-12-04T16:47:10.886" /><!-- duration: 31ms -->
+</step><!-- duration: 94ms -->

@@ -1,0 +1,17 @@
+<step title="Incoming Request" date="2025-12-04T16:12:13.312" instance="6e6e00" url="/api/zipdeploy?isAsync=true&amp;Deployer=az_cli_functions" method="POST" type="request" pid="928,2,30" Cache-Control="no-cache" Content-Length="148020812" Content-Type="application/octet-stream" Accept="*/*" Accept-Encoding="gzip, deflate" Authorization="Bea..." Host="mkrfunctapp-dotnet8.scm.azurewebsites.net" User-Agent="AZURECLI/2.80.0 (MSI)" x-ms-client-request-id="f6030935-d12b-11f0-ba2b-a20a521449da" X-ARR-LOG-ID="f6030935-d12b-11f0-ba2b-a20a521449da" CLIENT-IP="71.199.91.232:50210" X-SITE-DEPLOYMENT-ID="MKRFunctApp-dotnet8" WAS-DEFAULT-HOSTNAME="mkrfunctapp-dotnet8.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/zipdeploy?isAsync=true&amp;Deployer=az_cli_functions" >
+  <step title="Cleanup Xml Logs" date="2025-12-04T16:12:13.342" /><!-- duration: 47ms -->
+  <step title="ZipPushDeploy" date="2025-12-04T16:12:13.499" >
+    <step title="Functions App ZipDeploy. Extract zip. " date="2025-12-04T16:12:13.546" /><!-- duration: 31ms -->
+    <step title="Starting PushDeployAsync" date="2025-12-04T16:12:13.624" /><!-- duration: 31ms -->
+    <step title="Updating shutdown sentinel last write time" date="2025-12-04T16:12:13.749" SemaphoreCount="7" /><!-- duration: 32ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2025-12-04T16:12:13.811" /><!-- duration: 31ms -->
+    <step title="Saving request content to C:\local\Temp\zipdeploy\d3yjidbl.zip" date="2025-12-04T16:12:13.874" >
+      <step title="Total 148,020,812 bytes written to C:\local\Temp\zipdeploy\d3yjidbl.zip" date="2025-12-04T16:12:41.531" /><!-- duration: 47ms -->
+    </step><!-- duration: 27736ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2025-12-04T16:12:41.656" /><!-- duration: 47ms -->
+    <step title="Deleting shutdown sentinel file" date="2025-12-04T16:12:41.750" SemaphoreCount="8" /><!-- duration: 31ms -->
+    <step title="Starting FetchDeploy" date="2025-12-04T16:12:41.812" /><!-- duration: 31ms -->
+    <step title="Start deployment in the background" date="2025-12-04T16:12:41.891" /><!-- duration: 656ms -->
+  </step><!-- duration: 29064ms -->
+  <step title="Outgoing response" date="2025-12-04T16:12:42.594" type="response" statusCode="202" statusText="Accepted" Server="Microsoft-IIS/10.0" x-ms-request-id="f6030935-d12b-11f0-ba2b-a20a521449da" Retry-After="30" Cache-Control="private" X-AspNet-Version="4.0.30319" Location="https://mkrfunctapp-dotnet8.scm.azurewebsites.net/api/deployments/latest?deployer=az_cli_functions&amp;time=2025-12-04_16-12-42Z" /><!-- duration: 31ms -->
+</step><!-- duration: 29346ms -->

@@ -1,0 +1,3 @@
+<step title="Startup Request" date="2025-12-04T14:46:20.038" instance="58cc8d" url="/api/commandstream/reconnect?transport=webSockets&amp;messageId=d-C2BA60E1-I%2C0%7CM%2C24%7CN%2C0&amp;clientProtocol=1.4&amp;shell=CMD&amp;connectionToken=rvQ8fcG28g9fQui43r2ytt243Fnbz415HY2N%2BSlYTH8qyBqDy8oPGJ2HMMVKgrQNLaMFClyeCO4dVyjr79Kej0qf4cb%2Feh9ouBap0S3oWr8bdMz%2B%2B%2FpBHXxXOBHLJv5N&amp;tid=3" method="GET" type="request" pid="6920,2,7" ScmType="None" SCM_LOGSTREAM_TIMEOUT="3600" >
+  <step title="Cleanup Xml Logs" date="2025-12-04T14:46:20.085" /><!-- duration: 62ms -->
+</step><!-- duration: 125ms -->

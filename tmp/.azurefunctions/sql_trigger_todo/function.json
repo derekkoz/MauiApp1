@@ -1,0 +1,16 @@
+﻿{
+    "scriptFile":  "functions-quickstart-dotnet-azd-sql.dll",
+    "entryPoint":  "AzureSQL.ToDo.ToDoTrigger.Run",
+    "bindings":  [
+                     {
+                         "name":  "changes",
+                         "direction":  "In",
+                         "type":  "sqlTrigger",
+                         "tableName":  "[dbo].[ToDo]",
+                         "connectionStringSetting":  "AZURE_SQL_CONNECTION_STRING_KEY",
+                         "properties":  {
+
+                                        }
+                     }
+                 ]
+}

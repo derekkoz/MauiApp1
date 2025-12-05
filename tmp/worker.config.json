@@ -1,0 +1,12 @@
+﻿{
+    "description":  {
+                        "language":  "dotnet-isolated",
+                        "extensions":  [
+                                           ".dll"
+                                       ],
+                        "defaultExecutablePath":  "{WorkerRoot}functions-quickstart-dotnet-azd-sql.exe",
+                        "defaultWorkerPath":  "functions-quickstart-dotnet-azd-sql.exe",
+                        "workerIndexing":  "true",
+                        "canUsePlaceholder":  true
+                    }
+}

@@ -1,0 +1,3 @@
+﻿IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = N'ToDo')
+  CREATE SCHEMA [ToDo] AUTHORIZATION [dbo];
+GO

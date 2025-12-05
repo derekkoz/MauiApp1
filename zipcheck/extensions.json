@@ -1,0 +1,14 @@
+{
+  "extensions": [
+    {
+      "name": "SqlBinding",
+      "typeName": "Microsoft.Azure.WebJobs.Extensions.Sql.SqlBindingStartup, Microsoft.Azure.WebJobs.Extensions.Sql, Version=3.1.376.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91",
+      "hintPath": "./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Sql.dll"
+    },
+    {
+      "name": "Startup",
+      "typeName": "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c",
+      "hintPath": "./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll"
+    }
+  ]
+}
