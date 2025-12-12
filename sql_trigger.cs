@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Threading.Tasks;
+using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Sql;
 using Microsoft.Data.SqlClient;
@@ -12,11 +11,10 @@ namespace AzureSQL.ToDo;
 public static class ToDoTrigger
 {
     [Function("sql_trigger_todo")]
-    public static async Task Run(
-        [SqlTrigger("[dbo].[ToDo]", "AZURE_SQL_CONNECTION_STRING_KEY")]
-            IReadOnlyList<SqlChange<ToDoItem>> changes,
-        FunctionContext context
-    )
+    public static void Run(
+        [SqlTrigger("dbo.ToDo", "AZURE_SQL_CONNECTION_STRING_KEY")]
+        IReadOnlyList<JsonElement> items,
+        FunctionContext context)
     {
         var logger = context.GetLogger("ToDoTrigger");
 
@@ -27,79 +25,157 @@ public static class ToDoTrigger
             return;
         }
 
-        await using var conn = new SqlConnection(connStr);
         try
         {
-            await conn.OpenAsync();
-        }
-        catch (Exception ex)
-        {
-            logger.LogError($"Failed to open SQL connection: {ex}");
-            return;
-        }
+            using var conn = new SqlConnection(connStr);
+            conn.Open();
 
-        const string selectSql = "SELECT completed FROM dbo.ToDo WHERE id = @id;";
-        const string updateSql = "UPDATE dbo.ToDo SET completed = @completed WHERE id = @id;";
-
-        foreach (SqlChange<ToDoItem> change in changes)
-        {
-            ToDoItem toDoItem = change.Item;
-
-            // Use the strongly-typed SqlChangeOperation instead of a null-conditional string conversion.
-            var op = change.Operation;
-            logger.LogInformation($"Change operation: {op}");
-            logger.LogInformation($"Id: {toDoItem.Id}, Title: {toDoItem.title}, Url: {toDoItem.url}, Completed: {toDoItem.completed}");
-
-            // Only process Inserts (avoid update loop). If you want other behavior, adjust here.
-            if (op != SqlChangeOperation.Insert)
+            foreach (var element in items)
             {
-                logger.LogInformation($"Skipping non-insert operation ({op}) for id={toDoItem.Id}.");
-                continue;
-            }
+                logger.LogInformation($"Raw item payload: {JsonSerializer.Serialize(element)}");
 
-            // For new rows we want to mark them completed (change this rule if needed)
-            bool completedValue = true;
+                Guid id = Guid.Empty;
+                string? title = null;
 
-            try
-            {
-                // read current stored value
-                await using (var selCmd = conn.CreateCommand())
+                // handle top-level Id/id, nested Item.* and other common wrappers
+                if (TryGetGuidProperty(element, "Id", out id) ||
+                    TryGetGuidProperty(element, "id", out id) ||
+                    TryGetGuidPropertyFromNested(element, "Item", "id", out id) ||
+                    TryGetGuidPropertyFromNested(element, "Item", "Id", out id) ||
+                    TryGetGuidPropertyFromNested(element, "data", "Id", out id) ||
+                    TryGetGuidPropertyFromNested(element, "row", "Id", out id) ||
+                    TryGetGuidPropertyFromNested(element, "Row", "Id", out id))
                 {
-                    selCmd.CommandText = selectSql;
-                    selCmd.CommandType = CommandType.Text;
-                    selCmd.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = toDoItem.Id });
-                    var currentObj = await selCmd.ExecuteScalarAsync();
-                    bool? currentCompleted = currentObj == null || currentObj is DBNull ? null : (bool?)Convert.ToBoolean(currentObj);
+                    TryGetStringProperty(element, "title", out title);
+                    TryGetStringProperty(element, "Title", out title);
 
-                    if (currentCompleted.HasValue && currentCompleted.Value == completedValue)
+                    if (id == Guid.Empty)
                     {
-                        logger.LogInformation($"Skipping update for id={toDoItem.Id}: database value already completed={currentCompleted.Value}.");
+                        logger.LogWarning("Extracted Id is empty; skipping.");
                         continue;
                     }
-                }
 
-                // perform update only when different
-                await using var cmd = conn.CreateCommand();
-                cmd.CommandText = updateSql;
-                cmd.CommandType = CommandType.Text;
-                cmd.CommandTimeout = 60;
-                cmd.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = toDoItem.Id });
-                cmd.Parameters.Add(new SqlParameter("@completed", SqlDbType.Bit) { Value = completedValue });
+                    // Skipping logic for non-insert operations
+                    if (element.TryGetProperty("Operation", out var op) && op.ValueKind == JsonValueKind.Number)
+                    {
+                        var opVal = op.GetInt32();
+                        // 0 == insert, 1 == update; only process inserts
+                        if (opVal != 0)
+                        {
+                            logger.LogDebug($"Skipping operation {opVal}");
+                            continue;
+                        }
+                    }
 
-                var rows = await cmd.ExecuteNonQueryAsync();
-                if (rows > 0)
-                {
-                    logger.LogInformation($"Updated ToDo id={toDoItem.Id} set completed={completedValue} (rows={rows}).");
+                    // check Item.completed (boolean) to avoid marking already-completed rows
+                    if (TryGetBoolPropertyFromNested(element, "Item", "completed", out var completed) && completed)
+                    {
+                        logger.LogDebug("Item already completed; skipping");
+                        continue;
+                    }
+
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "UPDATE dbo.ToDo SET completed = 1 WHERE Id = @Id";
+                    cmd.Parameters.AddWithValue("@Id", id);
+                    var rows = cmd.ExecuteNonQuery();
+                    logger.LogInformation($"Marked completed for Id={id}, rowsAffected={rows}, title={title}");
                 }
                 else
                 {
-                    logger.LogWarning($"No rows updated for ToDo id={toDoItem.Id}.");
+                    logger.LogWarning("Could not extract Id from SQL trigger payload; skipping item.");
                 }
             }
-            catch (Exception ex)
-            {
-                logger.LogError($"Error processing ToDo id={toDoItem.Id}: {ex}");
-            }
         }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error processing SQL trigger items.");
+        }
+    }
+
+    private static bool TryGetGuidProperty(JsonElement e, string propName, out Guid value)
+    {
+        value = Guid.Empty;
+        if (e.ValueKind != JsonValueKind.Object) return false;
+        if (!e.TryGetProperty(propName, out var prop)) return false;
+
+        if (prop.ValueKind == JsonValueKind.String && Guid.TryParse(prop.GetString(), out var g))
+        {
+            value = g;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetGuidPropertyFromNested(JsonElement e, string outer, string inner, out Guid value)
+    {
+        value = Guid.Empty;
+        if (e.ValueKind != JsonValueKind.Object) return false;
+        if (!e.TryGetProperty(outer, out var nested)) return false;
+        if (nested.ValueKind == JsonValueKind.Object)
+        {
+            return TryGetGuidProperty(nested, inner, out value);
+        }
+        // sometimes nested object is encoded as JSON string
+        if (nested.ValueKind == JsonValueKind.String)
+        {
+            try
+            {
+                var parsed = JsonSerializer.Deserialize<JsonElement>(nested.GetString() ?? "");
+                return TryGetGuidProperty(parsed, inner, out value);
+            }
+            catch { /* fallthrough */ }
+        }
+        return false;
+    }
+
+    private static bool TryGetBoolPropertyFromNested(JsonElement e, string outer, string inner, out bool value)
+    {
+        value = false;
+        if (e.ValueKind != JsonValueKind.Object) return false;
+        if (!e.TryGetProperty(outer, out var nested)) return false;
+
+        // nested object case
+        if (nested.ValueKind == JsonValueKind.Object)
+        {
+            if (nested.TryGetProperty(inner, out var prop))
+            {
+                if (prop.ValueKind == JsonValueKind.True) { value = true; return true; }
+                if (prop.ValueKind == JsonValueKind.False) { value = false; return true; }
+                if (prop.ValueKind == JsonValueKind.String && bool.TryParse(prop.GetString(), out var b)) { value = b; return true; }
+            }
+            return false;
+        }
+
+        // nested JSON string case
+        if (nested.ValueKind == JsonValueKind.String)
+        {
+            try
+            {
+                var parsed = JsonSerializer.Deserialize<JsonElement>(nested.GetString() ?? "");
+                if (parsed.ValueKind == JsonValueKind.Object && parsed.TryGetProperty(inner, out var prop))
+                {
+                    if (prop.ValueKind == JsonValueKind.True) { value = true; return true; }
+                    if (prop.ValueKind == JsonValueKind.False) { value = false; return true; }
+                    if (prop.ValueKind == JsonValueKind.String && bool.TryParse(prop.GetString(), out var b)) { value = b; return true; }
+                }
+            }
+            catch { }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetStringProperty(JsonElement e, string propName, out string? value)
+    {
+        value = null;
+        if (e.ValueKind != JsonValueKind.Object) return false;
+        if (!e.TryGetProperty(propName, out var prop)) return false;
+        if (prop.ValueKind == JsonValueKind.String)
+        {
+            value = prop.GetString();
+            return true;
+        }
+        return false;
     }
 }
