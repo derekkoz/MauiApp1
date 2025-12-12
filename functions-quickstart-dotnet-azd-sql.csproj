@@ -1,13 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems><AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>functions_quickstart_dotnet_azd_sql</RootNamespace>
     <UserSecretsId>fedd831c-7fe2-4a3a-8275-5d1c701ed879</UserSecretsId>
-    <!-- stop SDK from auto-generating assembly attributes -->
+    
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
@@ -37,14 +38,14 @@
     </Content>
   </ItemGroup>
 
-  <!-- Exclude tests folder from compilation so test sources are not compiled into the function assembly -->
+  
   <ItemGroup>
     <Compile Remove="tests\**\*.cs" />
     <None Remove="tests\**\*" />
     <Content Remove="tests\**\*" />
   </ItemGroup>
 
-  <!-- Exclude duplicate files and any "duplicates" folder so each type is compiled once -->
+  
   <ItemGroup>
     <Compile Remove="duplicates\**\*.cs" />
     <Compile Remove="HealthCheckFunction.cs" />
@@ -53,8 +54,8 @@
     <Compile Remove="ToDoItem.cs" />
   </ItemGroup>
 
-  <!-- Explicitly include the intended source folder -->
+  
   <ItemGroup>
-    <Compile Include="MauiApp1\**\*.cs" />
+    <Compile Include="MauiApp1\**\*.cs" Exclude="MauiApp1\obj\**;duplicates\**;MauiApp1\tests\**" />
   </ItemGroup>
 </Project>
