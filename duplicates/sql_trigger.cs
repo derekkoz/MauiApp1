@@ -11,12 +11,13 @@ namespace AzureSQL.ToDo;
 
 public static class ToDoTrigger
 {
-    [Function("sql_trigger_todo")]
-    public static async Task Run(
-        [SqlTrigger("[dbo].[ToDo]", "AZURE_SQL_CONNECTION_STRING_KEY")]
-            IReadOnlyList<SqlChange<ToDoItem>> changes,
-        FunctionContext context
-    )
+    // TEMPORARY: disable SQL trigger registration while debugging host restarts.
+    // To re-enable, uncomment the next line.
+    // [Function("sql_trigger_todo")]
+    public static void Run(
+        [SqlTrigger("dbo.ToDo", ConnectionStringSetting = "AZURE_SQL_CONNECTION_STRING_KEY")] 
+        IReadOnlyList<string> items,
+        FunctionContext context)
     {
         var logger = context.GetLogger("ToDoTrigger");
 
@@ -27,10 +28,10 @@ public static class ToDoTrigger
             return;
         }
 
-        await using var conn = new SqlConnection(connStr);
+        using var conn = new SqlConnection(connStr);
         try
         {
-            await conn.OpenAsync();
+            conn.Open();
         }
         catch (Exception ex)
         {
@@ -38,68 +39,50 @@ public static class ToDoTrigger
             return;
         }
 
-        const string selectSql = "SELECT completed FROM dbo.ToDo WHERE id = @id;";
-        const string updateSql = "UPDATE dbo.ToDo SET completed = @completed WHERE id = @id;";
-
-        foreach (SqlChange<ToDoItem> change in changes)
+        foreach (var item in items)
         {
-            ToDoItem toDoItem = change.Item;
+            // Here you would process each item.
+            // Since the items are strings, you might want to deserialize them
+            // or handle them according to your application's logic.
 
-            // Use the strongly-typed SqlChangeOperation instead of a null-conditional string conversion.
-            var op = change.Operation;
-            logger.LogInformation($"Change operation: {op}");
-            logger.LogInformation($"Id: {toDoItem.Id}, Title: {toDoItem.title}, Url: {toDoItem.url}, Completed: {toDoItem.completed}");
+            logger.LogInformation($"Received item: {item}");
 
-            // Only process Inserts (avoid update loop). If you want other behavior, adjust here.
-            if (op != SqlChangeOperation.Insert)
+            // For demonstration, let's just log the item.
+            // Implement your logic here.
+        }   
+
+        // any az_func objects?
+        logger.LogInformation($"-- any az_func objects?");
+        using (var cmd = new SqlCommand("SELECT s.name AS SchemaName FROM sys.schemas s WHERE s.name = 'az_func';", conn))
+        using (var reader = cmd.ExecuteReader())
+        {
+            while (reader.Read())
             {
-                logger.LogInformation($"Skipping non-insert operation ({op}) for id={toDoItem.Id}.");
-                continue;
+                logger.LogInformation($"SchemaName: {reader.GetString(0)}");
             }
-
-            // For new rows we want to mark them completed (change this rule if needed)
-            bool completedValue = true;
-
-            try
+        }
+        
+        // list az_func tables
+        logger.LogInformation($"-- list az_func tables");
+        using (var cmd = new SqlCommand("SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'az_func';", conn))
+        using (var reader = cmd.ExecuteReader())
+        {
+            while (reader.Read())
             {
-                // read current stored value
-                await using (var selCmd = conn.CreateCommand())
-                {
-                    selCmd.CommandText = selectSql;
-                    selCmd.CommandType = CommandType.Text;
-                    selCmd.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = toDoItem.Id });
-                    var currentObj = await selCmd.ExecuteScalarAsync();
-                    bool? currentCompleted = currentObj == null || currentObj is DBNull ? null : (bool?)Convert.ToBoolean(currentObj);
-
-                    if (currentCompleted.HasValue && currentCompleted.Value == completedValue)
-                    {
-                        logger.LogInformation($"Skipping update for id={toDoItem.Id}: database value already completed={currentCompleted.Value}.");
-                        continue;
-                    }
-                }
-
-                // perform update only when different
-                await using var cmd = conn.CreateCommand();
-                cmd.CommandText = updateSql;
-                cmd.CommandType = CommandType.Text;
-                cmd.CommandTimeout = 60;
-                cmd.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = toDoItem.Id });
-                cmd.Parameters.Add(new SqlParameter("@completed", SqlDbType.Bit) { Value = completedValue });
-
-                var rows = await cmd.ExecuteNonQueryAsync();
-                if (rows > 0)
-                {
-                    logger.LogInformation($"Updated ToDo id={toDoItem.Id} set completed={completedValue} (rows={rows}).");
-                }
-                else
-                {
-                    logger.LogWarning($"No rows updated for ToDo id={toDoItem.Id}.");
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError($"Error processing ToDo id={toDoItem.Id}: {ex}");
+                logger.LogInformation($"TABLE_SCHEMA: {reader.GetString(0)}, TABLE_NAME: {reader.GetString(1)}");
             }
         }
     }
 }
+
+/*
+SQL queries referenced for manual inspection / run in your DB tool (Azure Data Studio / Query editor):
+
+-- is change tracking enabled for DB?
+SELECT databasepropertyex(DB_NAME(), 'IsChangeTrackingOn') AS ChangeTrackingOn;
+
+-- is change tracking enabled on the table?
+SELECT OBJECTPROPERTY(OBJECT_ID('dbo.ToDo'), 'TableHasChangeTracking') AS TableHasChangeTracking;
+
+Place these queries into your SQL editor when you want to inspect DB change-tracking state.
+*/

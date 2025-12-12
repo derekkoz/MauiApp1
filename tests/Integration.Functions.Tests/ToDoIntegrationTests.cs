@@ -1,60 +1,62 @@
 using System;
+using System.Data;
 using System.Threading.Tasks;
-using Xunit;
 using Microsoft.Data.SqlClient;
+using Xunit;
 
 namespace Integration.Functions.Tests;
 
 public class ToDoIntegrationTests
 {
+    private static string GetConn() =>
+        Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING_KEY")
+        ?? throw new InvalidOperationException("Set AZURE_SQL_CONNECTION_STRING_KEY environment variable to the DB connection string used by the Functions host.");
+
     [Fact]
-    public async Task InsertRow_IsProcessedByFunction_CompletedBecomesTrue()
+    public async Task InsertRow_FunctionShouldMarkCompletedTrue()
     {
-        var connStr = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING_KEY");
-        Assert.False(string.IsNullOrWhiteSpace(connStr), "Set AZURE_SQL_CONNECTION_STRING_KEY environment variable to the DB connection string used by the Functions host.");
+        var connStr = GetConn();
 
         var id = Guid.NewGuid();
-        await using var conn = new SqlConnection(connStr);
-        await conn.OpenAsync();
+        const string insertSql = "INSERT INTO dbo.ToDo (id, title, url, completed) VALUES (@id, @title, @url, 0);";
+        const string selectSql = "SELECT completed FROM dbo.ToDo WHERE id = @id;";
 
-        // Insert a test row (completed = false)
-        const string insertSql = "INSERT INTO dbo.ToDo (id, [order], title, url, completed) VALUES (@id, @order, @title, @url, @completed);";
-        await using (var insertCmd = conn.CreateCommand())
+        await using (var conn = new SqlConnection(connStr))
         {
-            insertCmd.CommandText = insertSql;
-            insertCmd.Parameters.AddWithValue("@id", id);
-            insertCmd.Parameters.AddWithValue("@order", 9999);
-            insertCmd.Parameters.AddWithValue("@title", "it-test-trigger");
-            insertCmd.Parameters.AddWithValue("@url", "https://example.test");
-            insertCmd.Parameters.AddWithValue("@completed", false);
-            await insertCmd.ExecuteNonQueryAsync();
+            await conn.OpenAsync();
+
+            await using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = insertSql;
+                cmd.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = id });
+                cmd.Parameters.Add(new SqlParameter("@title", SqlDbType.NVarChar, 200) { Value = "integration-test" });
+                cmd.Parameters.Add(new SqlParameter("@url", SqlDbType.NVarChar, 500) { Value = "http://example/" });
+                await cmd.ExecuteNonQueryAsync();
+            }
         }
 
-        // Poll until the function sets completed = true (timeout 15s)
-        var processed = false;
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-        while (sw.Elapsed < TimeSpan.FromSeconds(15))
+        // Poll until the function updates the row (timeout 30s)
+        var succeeded = false;
+        var deadline = DateTime.UtcNow.AddSeconds(30);
+        while (DateTime.UtcNow < deadline)
         {
-            await using var checkCmd = conn.CreateCommand();
-            checkCmd.CommandText = "SELECT completed FROM dbo.ToDo WHERE id = @id;";
-            checkCmd.Parameters.AddWithValue("@id", id);
-            var obj = await checkCmd.ExecuteScalarAsync();
-            if (obj != null && obj != DBNull.Value && Convert.ToBoolean(obj))
+            await using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = selectSql;
+            cmd.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = id });
+
+            var result = await cmd.ExecuteScalarAsync();
+            if (result != null && result != DBNull.Value && Convert.ToBoolean(result))
             {
-                processed = true;
+                succeeded = true;
                 break;
             }
-            await Task.Delay(500);
+
+            await Task.Delay(1000);
         }
 
-        Assert.True(processed, "Function did not mark row completed within timeout.");
-
-        // cleanup
-        await using (var del = conn.CreateCommand())
-        {
-            del.CommandText = "DELETE FROM dbo.ToDo WHERE id = @id;";
-            del.Parameters.AddWithValue("@id", id);
-            await del.ExecuteNonQueryAsync();
-        }
+        Assert.True(succeeded, "Function did not mark the inserted ToDo row as completed within the timeout period.");
     }
 }

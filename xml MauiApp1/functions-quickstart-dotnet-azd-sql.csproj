@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  ...
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
+    <!-- Ensure you do NOT set a RuntimeIdentifier when publishing to ./bin/output -->
+  </PropertyGroup>
+
+  <Target Name="PostPublish_RemoveExe" AfterTargets="Publish">
+    <Message Text="Removing publish executable(s) from $(PublishDir)" Importance="High" />
+    <Delete Files="$(PublishDir)$(AssemblyName)" ContinueOnError="true" />
+    <Delete Files="$(PublishDir)$(AssemblyName).exe" ContinueOnError="true" />
+  </Target>
+
+  ...
+</Project>
