@@ -1,0 +1,34 @@
+name: Cleanup test ACIs
+
+on:
+  workflow_run:
+    workflows: ["CI", "Tests", "deploy-function"]
+    types: [completed]
+  schedule:
+    - cron: '0 3 * * *' # daily at 03:00 UTC
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete test ACI groups if RG exists
+        run: |
+          set -euo pipefail
+          RG=rg-testprog
+          if [ "$(az group exists -n "$RG")" = "true" ]; then
+            az container list --resource-group "$RG" --query "[?starts_with(name, 'testprog-aci') || starts_with(name, 'debug-logs')].name" -o tsv \
+            | while IFS= read -r cg; do
+                [ -z "$cg" ] && continue
+                echo "Deleting test container group: $cg"
+                az container delete --resource-group "$RG" --name "$cg" --yes || true
+              done
+          else
+            echo "Resource group $RG not present, nothing to clean."
+          fi

@@ -88,3 +88,12 @@ echo "TIMEOUT: row $ID not marked completed within ${WAIT}s."
 echo "Check host logs for 'Raw item payload' and run this query in Azure Portal Query Editor:"
 echo "  SELECT Id, completed, ModifiedAt FROM dbo.ToDo WHERE Id = '$ID';"
 exit 2
+
+# Cleanup test ACIs in rg-testprog (safe: does nothing if RG or groups are absent)
+if [ "$(az group exists -n rg-testprog)" = "true" ]; then
+  for cg in $(az container list --resource-group rg-testprog --query "[?starts_with(name, 'testprog-aci') || starts_with(name, 'debug-logs')].name" -o tsv); do
+    [ -n "$cg" ] || continue
+    echo "Deleting test container group: $cg"
+    az container delete --resource-group rg-testprog --name "$cg" --yes || true
+  done
+fi
